@@ -1,0 +1,24 @@
+{
+  "name": "stork",
+  "version": "0.0.1",
+  "description": "Testing the interactions between Discord bots and attachements",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/2mill/stork.git"
+  },
+  "author": "Yannick Dorn",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/2mill/stork/issues"
+  },
+  "homepage": "https://github.com/2mill/stork#readme",
+  "dependencies": {
+    "discord.js": "^14.0.3",
+    "dotenv": "^16.0.1"
+  }
+}
