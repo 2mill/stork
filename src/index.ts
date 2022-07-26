@@ -1,15 +1,31 @@
 import { config } from 'dotenv'
-import { Channel, Client, Collection, GatewayIntentBits, GuildChannel, GuildChannelManager, GuildManager, Snowflake } from 'discord.js'
-import { Guild } from 'discord.js'
+
+import { 
+
+	Client, 
+	Channel,
+	ChannelType,
+	TextChannel,
+	Collection, 
+	GatewayIntentBits,
+	BaseGuildTextChannel,
+	BaseGuild
+
+} from 'discord.js'
 config();
 // const { Client, GatewayIntentBits } = require("discord.js");
 
 const client: Client = new Client({
-	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds]
+	intents: [
+		GatewayIntentBits.Guilds, 
+		GatewayIntentBits.GuildMessages, 
+		GatewayIntentBits.Guilds
+	]
+
 });
 client.on('ready', () => {
 	console.log('client ready!');
-	getMessagesFromChannel('blog')
+	console.log(getMessagesFromChannel('att'))
 });
 client.on('messageCreate', message => console.log("Received a message!"))
 
@@ -22,15 +38,16 @@ const guildConfig = {
 
 client.login(process.env.DISCORD_KEY);
 
-function getMessagesFromChannel(channelName: string): undefined {
+function getMessagesFromChannel(channelName: string): Collection<string, Channel> {
 
-	let guilds: Collection<string, Guild> = client.guilds.cache.filter(
-		guild => guild.id == guildConfig.guild
+	const textChannels: Collection<string, Channel> = client.channels.cache.filter(
+		channel => channel instanceof BaseGuildTextChannel
 	);
 
-	//TODO: filter for the proper channel name and return it from this function.
-	console.log(guilds)
-	return undefined
+
+	return textChannels.filter(channel => {
+		return (channel as BaseGuildTextChannel).name == channelName
+	});
 }
 
 
