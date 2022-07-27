@@ -9,7 +9,9 @@ import {
 	Collection, 
 	GatewayIntentBits,
 	BaseGuildTextChannel,
-	BaseGuild
+	BaseGuild,
+	Message,
+	MessageFlags,
 
 } from 'discord.js'
 config();
@@ -19,15 +21,30 @@ const client: Client = new Client({
 	intents: [
 		GatewayIntentBits.Guilds, 
 		GatewayIntentBits.GuildMessages, 
-		GatewayIntentBits.Guilds
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.MessageContent,
 	]
 
 });
+
+function temp_filter(message: Message): boolean {
+	return true
+}
 client.on('ready', () => {
 	console.log('client ready!');
-	console.log(getMessagesFromChannel('att'))
+	// console.log(getMessagesFromChannel('att'))
+	getChannel('att').forEach(channel => {
+		const mess = (channel as BaseGuildTextChannel).messages;
+		mess.fetch({limit: 10, cache:false}).then(
+			coll => coll.forEach(mss => console.log(mss.attachments.size))
+		);
+		
+	});
+
 });
-client.on('messageCreate', message => console.log("Received a message!"))
+
+
+client.on('messageCreate', message => message.attachments.forEach(attch => console.log(attch.url)));
 
 const guildConfig = {
 	"guild": process.env.guild,
@@ -38,7 +55,9 @@ const guildConfig = {
 
 client.login(process.env.DISCORD_KEY);
 
-function getMessagesFromChannel(channelName: string): Collection<string, Channel> {
+
+//todo: Rename function.
+function getChannel(channelName: string): Collection<string, Channel> {
 
 	const textChannels: Collection<string, Channel> = client.channels.cache.filter(
 		channel => channel instanceof BaseGuildTextChannel
