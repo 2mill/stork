@@ -1,7 +1,11 @@
-import { config } from 'dotenv'
-
+import { config } from 'dotenv';
+config()
+const botConfig = {
+	"guild": process.env.guild,
+	"key": process.env.DISCORD_KEY,
+}
+// import {front-matter} from 'front-matter';
 import { 
-
 	Client, 
 	Channel,
 	ChannelType,
@@ -14,7 +18,6 @@ import {
 	MessageFlags,
 
 } from 'discord.js'
-config();
 // const { Client, GatewayIntentBits } = require("discord.js");
 
 const client: Client = new Client({
@@ -26,6 +29,7 @@ const client: Client = new Client({
 	]
 
 });
+client.login(botConfig.key);
 
 function temp_filter(message: Message): boolean {
 	return true
@@ -33,30 +37,23 @@ function temp_filter(message: Message): boolean {
 client.on('ready', () => {
 	console.log('client ready!');
 	// console.log(getMessagesFromChannel('att'))
-	getChannel('att').forEach(channel => {
-		const mess = (channel as BaseGuildTextChannel).messages;
-		mess.fetch({limit: 10, cache:false}).then(
-			coll => coll.forEach(mss => console.log(mss.attachments.size))
-		);
+	// getChannel('att').forEach(channel => {
+	// 	const mess = (channel as BaseGuildTextChannel).messages;
+	// 	mess.fetch({limit: 10, cache:false}).then(
+	// 		coll => coll.forEach(mss => console.log(mss.attachments.size))
+
+			/**
+			 * So you can list all of the attachements from a message and get the URl.
+			 * Making a GET request on the given URL will dump the entire text from the body.
+			 * This means that a discord bot could seriously be used as a source to store website data etc.
+			 * You could feed it a schemas and validate new data uploads etc. Have it upload its own attachemetns etc.
+			 * The possiblities are somewhat endless here.
+			 * More importantly, a Discord bot could hold its own configuration data for a server ON the server itself.
+			 */
+		// );
 		
-	});
-
+	// });
 });
-
-
-client.on('messageCreate', message => message.attachments.forEach(attch => console.log(attch.url)));
-
-const guildConfig = {
-	"guild": process.env.guild,
-}
-
-
-
-
-client.login(process.env.DISCORD_KEY);
-
-
-//todo: Rename function.
 function getChannel(channelName: string): Collection<string, Channel> {
 
 	const textChannels: Collection<string, Channel> = client.channels.cache.filter(
