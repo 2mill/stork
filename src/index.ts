@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 config()
 const botConfig = {
-	"guild": process.env.guild,
+	"guildID": process.env.guild,
 	"key": process.env.DISCORD_KEY,
 }
 // import {front-matter} from 'front-matter';
@@ -16,6 +16,8 @@ import {
 	BaseGuild,
 	Message,
 	MessageFlags,
+	Guild,
+	GuildChannel,
 
 } from 'discord.js'
 // const { Client, GatewayIntentBits } = require("discord.js");
@@ -34,8 +36,37 @@ client.login(botConfig.key);
 function temp_filter(message: Message): boolean {
 	return true
 }
+
+
+function findGuildCache(): Guild | undefined {
+	return client.guilds.cache.find(guild => guild.id == botConfig.guildID)
+}
+function fetchGuild(): Guild | undefined {
+	let guild: Guild | null = client.guilds.resolve(botConfig.guildID as string)
+	if (guild == null) return undefined
+}
+async function createTextChannel(channelName: string): Promise<TextChannel | boolean> {
+	let temp: Guild | undefined = findGuildCache();
+	if (temp == undefined) {
+		let temp = fetchGuild();
+	}
+	if (temp instanceof Guild) {
+		if (temp.channels.cache.find(channel => channel.name == channelName) == undefined) {
+			return temp.channels.create({
+				name: channelName,
+				type: 0, // GuildText
+			})
+		}
+	}
+	return new Promise(resolveInner => false);
+}
+
 client.on('ready', () => {
 	console.log('client ready!');
+
+	// validate
+	createTextChannel('images').then().catch(console.error)
+	createTextChannel('other').then().catch()
 	// console.log(getMessagesFromChannel('att'))
 	// getChannel('att').forEach(channel => {
 	// 	const mess = (channel as BaseGuildTextChannel).messages;
