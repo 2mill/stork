@@ -1,5 +1,27 @@
 import { config } from 'dotenv';
 config()
+
+interface BotConfig {
+	guildID: string,
+	key: string,
+	repos: Repos
+}
+interface Repos {
+	images: string,
+}
+
+class DBBotConfig implements BotConfig {
+	guildID: string;
+	key: string;
+	repos: Repos;
+	constructor(guildID: string, key: string, repos:Repos) {
+		this.guildID = guildID;
+		this.key = key;
+		this.repos = repos
+	}
+}
+
+
 const botConfig = {
 	"guildID": process.env.guild,
 	"key": process.env.DISCORD_KEY,
@@ -31,6 +53,17 @@ const client: Client = new Client({
 	]
 
 });
+
+
+
+
+class DBClient {
+	images:  Channel| undefined; 
+	constructor(discordClient: Client, config: BotConfig) {
+		this.images = getChannel(config.repos.images);
+	}
+}
+
 client.login(botConfig.key);
 
 function temp_filter(message: Message): boolean {
@@ -45,20 +78,33 @@ function fetchGuild(): Guild | undefined {
 	let guild: Guild | null = client.guilds.resolve(botConfig.guildID as string)
 	if (guild == null) return undefined
 }
-async function createTextChannel(channelName: string): Promise<TextChannel | boolean> {
-	let temp: Guild | undefined = findGuildCache();
-	if (temp == undefined) {
-		let temp = fetchGuild();
+
+/**
+ * TODO: expand arguments for permissions etc.
+ * @param channelName The name of the channel that is to be creatd
+ * @returns 
+ */
+async function createTextChannel(channelName: string): Promise<TextChannel> {
+	let temp: Guild = await client.guilds.fetch(botConfig.guildID as string)
+	if (temp.channels.cache.find(channel => channel.name == channelName) == undefined) {
+		return temp.channels.create({
+			name: channelName,
+			type: 0, // GuildText
+		});
 	}
-	if (temp instanceof Guild) {
-		if (temp.channels.cache.find(channel => channel.name == channelName) == undefined) {
-			return temp.channels.create({
-				name: channelName,
-				type: 0, // GuildText
-			})
-		}
-	}
-	return new Promise(resolveInner => false);
+	return Promise.reject(`Channel \'${channelName}\' already exists, channel duplication is not supported.`)
+}
+
+
+/**
+ * 
+ * @param channelNames An array of channelNames that is to be created
+ * @returns 
+ */
+function bulkCreateTextChannle(channelNames: string[]): Promise<TextChannel>[] {
+	return channelNames.map(
+		channelName => createTextChannel(channelName)
+	);
 }
 
 client.on('ready', () => {
@@ -66,7 +112,7 @@ client.on('ready', () => {
 
 	// validate
 	createTextChannel('images').then().catch(console.error)
-	createTextChannel('other').then().catch()
+	createTextChannel('other').then().catch(console.error)
 	// console.log(getMessagesFromChannel('att'))
 	// getChannel('att').forEach(channel => {
 	// 	const mess = (channel as BaseGuildTextChannel).messages;
@@ -85,14 +131,12 @@ client.on('ready', () => {
 		
 	// });
 });
-function getChannel(channelName: string): Collection<string, Channel> {
+function getChannel(channelName: string): Channel | undefined {
 
 	const textChannels: Collection<string, Channel> = client.channels.cache.filter(
 		channel => channel instanceof BaseGuildTextChannel
 	);
-
-
-	return textChannels.filter(channel => {
+	return textChannels.find(channel => {
 		return (channel as BaseGuildTextChannel).name == channelName
 	});
 }
